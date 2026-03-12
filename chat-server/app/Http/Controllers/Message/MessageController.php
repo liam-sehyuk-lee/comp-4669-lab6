@@ -8,12 +8,16 @@ use App\Models\Message;
 
 use App\Models\Room;
 use Illuminate\Http\JsonResponse;
+use phpcent\Client as CentrifugoClient;
 
 class MessageController extends Controller
 {
+    private $centrifugo;
+
     public function __construct()
     {
-        // TODO: Create a CentrifugoClient instance and set the API key and secret
+        $this->centrifugo = new CentrifugoClient(env('WS_API_ENDPOINT'), env('WS_API_KEY'));
+        $this->centrifugo->setSecret(env('WS_API_SECRET'));
     }
 
     /**
@@ -24,9 +28,18 @@ class MessageController extends Controller
      */
     public function send(SendMessageRequest $request, Room $room): JsonResponse
     {
-        // TODO: Create a new Message instance, set its properties based on the request data, and save it to the database
-        // After saving the message, use the CentrifugoClient to broadcast the new message to all clients subscribed to the room's channel
-        return response()->json();
+        $message = $room->messages()->create([
+            'from_user_id' => $request->user()->id, 
+            'body'         => $request->body,    
+        ]);
+
+        $message->load('user');
+
+        $this->centrifugo->publish((string)$room->id, [
+            'message' => $message
+        ]);
+
+        return response()->json($message, 200);
     }
 
     /**
@@ -34,8 +47,8 @@ class MessageController extends Controller
      */
     public function index(Room $room): JsonResponse
     {
-        // TODO: Retrieve all messages for the specified room and return them as a JSON response
-        // Note that the client-side expects the messages to be returned in a JSON object with the key "messages"
-        return response()->json();
+        return response()->json([
+            'messages' => $room->messages()->with('user')->get()
+        ]);
     }
 }

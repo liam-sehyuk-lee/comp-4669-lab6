@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Centrifuge;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CentrifugoTokenRequest;
 use Illuminate\Http\JsonResponse;
+use Firebase\JWT\JWT;
+use phpcent\Client as CentrifugoClient;
 
 class CentrifugeController extends Controller
 {
+    private $centrifugo;
 
     public function __construct()
     {
-        // TODO: Create a CentrifugoClient instance and set the API key and secret
+        $this->centrifugo = new CentrifugoClient(env('WS_API_ENDPOINT'), env('WS_API_KEY'));
+        $this->centrifugo->setSecret(env('WS_API_SECRET'));
     }
 
     /**
@@ -20,9 +24,17 @@ class CentrifugeController extends Controller
      */
     public function getToken(CentrifugoTokenRequest $request): JsonResponse
     {
-        // TODO: Generate a connection token for the authenticated user and return it as a JSON response
-        // Note that the token should be valid for a certain period of time (e.g., 1 hour)
-        // The client-side expects the token to be returned in a JSON object with the key "ws_token"
-        return response()->json();
+        $user = $request->user();
+
+        $payload = [
+            'sub' => (string) $user->id,
+            'exp' => time() + 3600
+        ];
+
+        $token = JWT::encode($payload, env('WS_API_SECRET'), 'HS256');
+
+        return response()->json([
+            'ws_token' => $token
+        ]);
     }
 }

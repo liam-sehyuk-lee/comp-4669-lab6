@@ -2,10 +2,15 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "keywords": [
+        "framework",
+        "laravel"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "centrifugal/phpcent": "~3.0",
+        "firebase/php-jwt": "^7.0",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/breeze": "^1.15",
         "laravel/framework": "^9.19",

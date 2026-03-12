@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Message extends Model {
     use HasFactory;
 
+    protected $fillable = ['room_id', 'from_user_id', 'body'];
+
     public $timestamps = true;
 
     protected $with = ['user'];
